@@ -1,3 +1,34 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: myname
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+mountOptions:
+  - debug
+volumeBindingMode: Immediate
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: first-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: myname
+
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,6 +50,9 @@ spec:
       containers:
       - name: db
         image: thelesik/quotes-data:v1
+        volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: mypd
         env:
         - name: MYSQL_ALLOW_EMPTY_PASSWORD
           value: "yes"
@@ -31,6 +65,11 @@ spec:
         ports:
         - containerPort: 3306
       restartPolicy: Always
+      volumes:
+        - name: mypd
+          persistentVolumeClaim:
+            claimName: first-pvc
+
 ---
 apiVersion: v1
 kind: Service

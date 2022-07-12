@@ -38,4 +38,27 @@ spec:
                 name: mysecret
                 key: MYSQL_USER_PASSWORD
                 optional: false
+      initContainers:
+      - name: init-data-script
+        image: thelesik/quotes-script:v3
+        env:
+          - name: MYSQL_DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_DB_HOST
+                optional: false
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_USER
+                optional: false
+          - name: MYSQL_USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_USER_PASSWORD
+                optional: false
+        command: ['sh', '-c', "until mysql -h ${MYSQL_DB_HOST} -u     ${MYSQL_USER} -p${MYSQL_USER_PASSWORD} -e 'show databases;'; do echo waiting for mydb; sleep 2; done"]
       restartPolicy: Always

@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: myapp-container
+    image: registry.access.redhat.com/ubi8/ubi:latest
+    env:
+    - name: MYSQL_DB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: MYSQL_DB_HOST
+          optional: false
+    - name: MYSQL_USER
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: MYSQL_USER
+          optional: false
+    - name: MYSQL_USER_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: MYSQL_USER_PASSWORD
+          optional: false
+    command: ['sh', '-c', 'echo The app is running! && sleep 3600']
+  initContainers:
+  - name: init-data-script
+    image: registry.access.redhat.com/ubi8/ubi:latest
+    command: ['sh', '-c', "until mysql -h ${MYSQL_DB_HOST} -u ${MYSQL_USER} -p${MYSQL_USER_PASSWORD} -e 'show databases;'; do echo waiting for mydb; sleep 2; done"]

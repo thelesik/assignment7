@@ -1,32 +1,29 @@
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
+apiVersion: v1
+kind: PersistentVolume
 metadata:
-  name: myname
-provisioner: kubernetes.io/aws-ebs
-parameters:
-  type: gp2
-reclaimPolicy: Retain
-allowVolumeExpansion: true
-mountOptions:
-  - debug
-volumeBindingMode: Immediate
-
+  name: nginx-pv-volume
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path:  "/var/lib/mysql" #"/mnt/nginx"
 
 ---
 
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: first-pvc
+  name: nginx-pv-claim
 spec:
+  storageClassName: standard
   accessModes:
     - ReadWriteOnce
-  volumeMode: Filesystem
   resources:
     requests:
-      storage: 8Gi
-  storageClassName: myname
-
+      storage: 5Gi
 
 ---
 apiVersion: apps/v1
@@ -52,7 +49,7 @@ spec:
         image: thelesik/quotes-data:v1
         volumeMounts:
         - mountPath: "/var/lib/mysql"
-          name: mypd
+          name: nginx-storage
         env:
         - name: MYSQL_ALLOW_EMPTY_PASSWORD
           value: "yes"
@@ -64,11 +61,12 @@ spec:
           value: root
         ports:
         - containerPort: 3306
-      restartPolicy: Always
+          #restartPolicy: Always
       volumes:
-        - name: mypd
+        - name: nginx-storage
           persistentVolumeClaim:
-            claimName: first-pvc
+            claimName: nginx-pv-claim
+      restartPolicy: Always
 
 ---
 apiVersion: v1

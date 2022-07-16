@@ -51,14 +51,30 @@ spec:
         - mountPath: "/var/lib/mysql"
           name: nginx-storage
         env:
-        - name: MYSQL_ALLOW_EMPTY_PASSWORD
-          value: "yes"
-        - name: MYSQL_DATABASE
-          value: mydatabase
-        - name: MYSQL_PASSWORD
-          value: root
-        - name: MYSQL_ROOT_PASSWORD
-          value: root
+          - name: MYSQL_ALLOW_EMPTY_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_ALLOW_EMPTY_PASSWORD
+                optional: false
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_DATABASE
+                optional: false
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_PASSWORD
+                optional: false
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: MYSQL_ROOT_PASSWORD
+                optional: false
         ports:
         - containerPort: 3306
           #restartPolicy: Always
